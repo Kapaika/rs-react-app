@@ -1,45 +1,32 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import Button from './Button';
 
 interface TopControlsProps {
-  query: string;
   getName: (name: string) => void;
 }
 
-class TopControls extends Component<TopControlsProps> {
-  state = {
-    searchValue: '',
-  };
+export default function TopControls({ getName }: TopControlsProps) {
+  const [searchValue, setSearchValue] = useState('');
 
-  componentDidMount(): void {
+  useEffect(() => {
     const storedQuery = localStorage.getItem('searchQuery');
     if (storedQuery) {
-      this.setState({ searchValue: storedQuery });
+      setSearchValue(storedQuery);
     }
-  }
+  }, [searchValue]);
 
-  componentDidUpdate(): void {
-    console.log(this.props);
-  }
-
-  makeAnApicall = () => {
-    this.props.getName(this.state.searchValue);
+  const makeAnApicall = () => {
+    getName(searchValue);
   };
 
-  render() {
-    return (
-      <>
-        <input
-          value={this.state.searchValue}
-          onChange={(event) =>
-            this.setState({ searchValue: event.target.value })
-          }
-          className="px-50 py-3 text-black font-semibold rounded-lg shadow-md"
-        ></input>
-        <Button label="Search" onClick={this.makeAnApicall}></Button>
-      </>
-    );
-  }
+  return (
+    <>
+      <input
+        value={searchValue}
+        onChange={(event) => setSearchValue(event.target.value)}
+        className="px-50 py-3 text-black font-semibold rounded-lg shadow-md"
+      ></input>
+      <Button label="Search" onClick={makeAnApicall}></Button>
+    </>
+  );
 }
-
-export default TopControls;

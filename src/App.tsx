@@ -1,84 +1,68 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import TopControls from './components/TopControls';
 import Results from './components/Results';
 import ErrorBoundary from './components/ErrorBoundary';
 import Button from './components/Button';
+import { Person } from './model/Person';
 
-interface AppState {
-  items: [];
-  isLoading: boolean;
-  errorKey: number;
-  storedQuery: string;
-}
+export default function App() {
+  const SWAPI_LINK = 'https://swapi.dev/api/people?search=';
+  const [items, setItems] = useState<Person[] | null>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorKey, setErrorKey] = useState(0);
+  const [storedQuery, setStoredQuery] = useState('');
 
-class App extends Component {
-  SWAPI_LINK = 'https://swapi.dev/api/people?search=';
-  state: AppState = {
-    items: [],
-    isLoading: false,
-    errorKey: 0,
-    storedQuery: '',
-  };
-
-  componentDidMount(): void {
-    const storedQuery = localStorage.getItem('searchQuery');
-    if (storedQuery) {
-      this.makeAPICall(storedQuery);
-      this.setState({ storedQuery: storedQuery });
+  useEffect(() => {
+    const searchQuery = localStorage.getItem('searchQuery');
+    if (searchQuery) {
+      setStoredQuery(searchQuery);
+      makeAPICall(searchQuery);
     }
-  }
+  }, [storedQuery]);
 
-  makeAPICall = (name: string) => {
-    this.setState({
-      items: [],
-      isLoading: true,
-      errorKey: this.state.errorKey + 1,
-    });
-    fetch(this.SWAPI_LINK + name)
+  const makeAPICall = (name: string) => {
+    setItems([]);
+    setIsLoading(true);
+    setErrorKey((errorKey) => errorKey + 1);
+    fetch(SWAPI_LINK + name)
       .then((response) => {
         if (!response) {
-          this.setState({ items: null });
+          setItems(null);
           throw new Error('Network response was not ok');
         }
         return response.json();
       })
       .then((data) => {
-        this.setState({ items: data.results, isLoading: false });
+        setItems(data.results);
+        setIsLoading(false);
         localStorage.setItem('searchQuery', name);
       });
   };
 
-  makeErrorCall = () => {
+  const makeErrorCall = () => {
     fetch('https://jsonplaceholder.typicode.com/invalid-endpoint')
       .then((response) => {
         return response.json();
       })
       .then(() => {
-        this.setState({ items: null });
+        setItems(null);
       });
   };
 
-  render() {
-    return (
-      <>
-        <TopControls
-          query={this.state.storedQuery}
-          getName={(name: string) => this.makeAPICall(name)}
-        ></TopControls>
-        {this.state.isLoading ? (
-          <h2>🌀 Loading...</h2>
-        ) : (
-          <ErrorBoundary key={this.state.errorKey}>
-            <Results items={this.state.items} />
-          </ErrorBoundary>
-        )}
-        <div className="flex justify-end mt-4">
-          <Button label="Error Button" onClick={this.makeErrorCall} />
-        </div>
-      </>
-    );
-  }
+  return (
+    <>
+      <TopControls getName={(name: string) => makeAPICall(name)}></TopControls>
+      {isLoading ? (
+        <h2>🌀 Loading...</h2>
+      ) : (
+        <ErrorBoundary key={errorKey}>
+          <Results items={items} />
+        </ErrorBoundary>
+      )}
+      <div className="flex justify-end mt-4">
+        <Button label="Error Button" onClick={makeErrorCall} />
+      </div>
+    </>
+  );
 }
-
-export default App;
