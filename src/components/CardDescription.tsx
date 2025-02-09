@@ -31,7 +31,6 @@ export default function CardDescription() {
       .then((data) => {
         setIsLoading(false);
         setCharacter(data);
-        console.log(character);
       })
       .catch((error) => console.error('Fetch error:', error));
   }, [characterId]);
