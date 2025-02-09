@@ -12,6 +12,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorKey, setErrorKey] = useState(0);
   const [storedQuery, setStoredQuery] = useState('');
+  const [nextPage, setNextPage] = useState<string | null>('');
+  const [previousPage, setPreviousPage] = useState<string | null>('');
 
   useEffect(() => {
     const searchQuery = localStorage.getItem('searchQuery');
@@ -34,6 +36,8 @@ export default function App() {
         return response.json();
       })
       .then((data) => {
+        setPreviousPage(data.previous);
+        setNextPage(data.next);
         setItems(data.results);
         setIsLoading(false);
         localStorage.setItem('searchQuery', name);
@@ -57,7 +61,11 @@ export default function App() {
         <h2>🌀 Loading...</h2>
       ) : (
         <ErrorBoundary key={errorKey}>
-          <Results items={items} />
+          <Results
+            initialItems={items}
+            initialNextPage={nextPage}
+            initialPreviousPage={previousPage}
+          />
         </ErrorBoundary>
       )}
       <div className="flex justify-end mt-4">

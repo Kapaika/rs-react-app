@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Button from './Button';
+import { NavLink } from 'react-router';
 
 interface TopControlsProps {
   getName: (name: string) => void;
@@ -13,7 +14,7 @@ export default function TopControls({ getName }: TopControlsProps) {
     if (storedQuery) {
       setSearchValue(storedQuery);
     }
-  }, [searchValue]);
+  }, []);
 
   const makeAnApicall = () => {
     getName(searchValue);
@@ -26,7 +27,9 @@ export default function TopControls({ getName }: TopControlsProps) {
         onChange={(event) => setSearchValue(event.target.value)}
         className="px-50 py-3 text-black font-semibold rounded-lg shadow-md"
       ></input>
-      <Button label="Search" onClick={makeAnApicall}></Button>
+      <NavLink to={'/page/1'}>
+        <Button label="Search" onClick={makeAnApicall}></Button>
+      </NavLink>
     </>
   );
 }
