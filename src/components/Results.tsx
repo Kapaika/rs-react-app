@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { NavLink } from 'react-router';
 import { useState } from 'react';
 import Pagination from './Pagination';
+import { useThemeContext } from '../contexts/themeContext';
 
 interface ResultsProps {
   initialItems: Person[] | null;
@@ -30,6 +31,7 @@ export default function Results({
   const [previousPage, setPreviousPage] = useState<string | null>(
     initialPreviousPage
   );
+  const { theme } = useThemeContext();
 
   const extractIdFromUrl = (url: string) => {
     const parts = url.split('/');
@@ -62,27 +64,56 @@ export default function Results({
     <div className={isDescriptionOn ? 'grid grid-cols-2 gap-4' : ''}>
       <NavLink to={`/page/${currentPage}`}>
         {isLoading ? (
-          <h2>🌀 Loading...</h2>
+          <h2
+            className={`
+              text-xl ${theme === 'white' ? 'text-black' : 'text-white'}
+            `}
+          >
+            🌀 Loading...
+          </h2>
         ) : (
           <div>
-            <h2 className="text-xl mb-4">Results</h2>
-            <ul className="space-y-2">
+            <h2
+              className={`
+                text-xl mb-4 
+                ${theme === 'white' ? 'text-black' : 'text-white'}
+              `}
+            >
+              Results
+            </h2>
+            <ul
+              className={`
+                space-y-2 
+                ${theme === 'white' ? 'text-black bg-white' : 'text-white bg-gray-700'}
+              `}
+            >
               {items.length > 0 ? (
                 items.map((item: Person, index: number) => (
                   <li
                     key={index}
-                    className="bg-white p-2 rounded-lg shadow-sm hover:bg-gray-200"
+                    className={`
+                      p-2 rounded-lg shadow-sm 
+                      ${theme === 'white' ? 'bg-white hover:bg-gray-200' : 'bg-gray-800 hover:bg-gray-600'}
+                    `}
                   >
                     <NavLink
                       to={`/page/${currentPage}/character/${extractIdFromUrl(item.url)}`}
-                      className="text-blue-500 hover:underline"
+                      className={`
+                        ${theme === 'white' ? 'text-blue-500 hover:underline' : 'text-blue-300 hover:underline'}
+                      `}
                     >
                       {item.name}
                     </NavLink>
                   </li>
                 ))
               ) : (
-                <li>No results available</li>
+                <li
+                  className={`
+                    ${theme === 'white' ? 'text-black' : 'text-white'}
+                  `}
+                >
+                  No results available
+                </li>
               )}
             </ul>
             <Pagination

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router';
+import { useThemeContext } from '../contexts/themeContext';
 
 interface PaginationProps {
   previousPage: string | null;
@@ -15,6 +16,7 @@ export default function Pagination({
     const page = urlObj.searchParams.get('page');
     return page;
   };
+  const { theme } = useThemeContext();
 
   return (
     <div className="flex justify-between mt-4">
@@ -22,7 +24,7 @@ export default function Pagination({
         <NavLink to={`/page/${extractPageId(previousPage)}`}>
           <button
             onClick={() => fetchData(previousPage)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
+            className={`px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${theme === 'white' ? 'text-black bg-white' : 'text-white bg-gray-700'}`}
           >
             &lt; Previous
           </button>
@@ -35,7 +37,7 @@ export default function Pagination({
         <NavLink to={`/page/${extractPageId(nextPage)}`}>
           <button
             onClick={() => fetchData(nextPage)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
+            className={`px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${theme === 'white' ? 'text-black bg-white' : 'text-white bg-gray-700'}`}
           >
             Next &gt;
           </button>
