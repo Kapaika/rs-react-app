@@ -1,9 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import Results from './Results';
-import { Person } from '../model/Person'; // Adjust import path if necessary
-import '@testing-library/jest-dom'; // Import for jest-dom matchers
-import { Route, Routes, useParams } from 'react-router';
-import { MemoryRouter } from 'react-router';
+import { useThemeContext } from '../contexts/ThemeContext';
+import { addItem, removeItem } from '../store/selectedItemsSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import store from '../store/store';
 
 global.fetch = jest.fn() as jest.Mock;
 
@@ -11,6 +12,126 @@ jest.mock('react-router', () => ({
   ...jest.requireActual('react-router'),
   useParams: jest.fn(),
 }));
+
+jest.mock('../contexts/ThemeContext', () => ({
+  useThemeContext: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
+
+describe('Results Component', () => {
+  const mockDispatch = jest.fn();
+  const mockResults = [
+    {
+      name: 'Luke Skywalker',
+      url: 'https://swapi.dev/api/people/1/',
+    },
+    {
+      name: 'Darth Vader',
+      url: 'https://swapi.dev/api/people/2/',
+    },
+  ];
+
+  beforeEach(() => {
+    // Mock dispatch to use a jest function
+    useDispatch.mockReturnValue(mockDispatch);
+    useSelector.mockImplementation((selector) => {
+      if (selector.name === 'selectedItems.selectedPeople') {
+        return []; // Simulate no selected items
+      }
+      if (selector.name === 'fetchedResults.results') {
+        return mockResults;
+      }
+      return null;
+    });
+
+    jest.clearAllMocks();
+  });
+
+  it('renders the results and checkboxes correctly', () => {
+    useThemeContext.mockReturnValue({ theme: 'white', toggleTheme: jest.fn() });
+
+    render(
+      <Provider store={store}>
+        <Results />
+      </Provider>
+    );
+
+    // Check if the results are being rendered correctly
+    mockResults.forEach((person) => {
+      expect(screen.getByText(person.name)).toBeInTheDocument();
+    });
+
+    // Check if the checkboxes are rendered
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(mockResults.length);
+  });
+
+  it('dispatches addItem when a checkbox is clicked', () => {
+    useThemeContext.mockReturnValue({ theme: 'white', toggleTheme: jest.fn() });
+
+    render(
+      <Provider store={store}>
+        <Results />
+      </Provider>
+    );
+
+    const checkbox = screen.getByLabelText('Luke Skywalker');
+    fireEvent.click(checkbox); // Simulate a click on the checkbox
+
+    // Expect the `addItem` action to be dispatched for this person
+    expect(mockDispatch).toHaveBeenCalledWith(addItem(mockResults[0]));
+  });
+
+  it('dispatches removeItem when a checkbox is clicked again', () => {
+    useThemeContext.mockReturnValue({ theme: 'white', toggleTheme: jest.fn() });
+
+    // Mock the Redux state to have the item already selected
+    useSelector.mockImplementationOnce((selector) => {
+      if (selector.name === 'selectedItems.selectedPeople') {
+        return [mockResults[0]];
+      }
+      if (selector.name === 'fetchedResults.results') {
+        return mockResults;
+      }
+      return null;
+    });
+
+    render(
+      <Provider store={store}>
+        <Results />
+      </Provider>
+    );
+
+    const checkbox = screen.getByLabelText('Luke Skywalker');
+    fireEvent.click(checkbox);
+
+    expect(mockDispatch).toHaveBeenCalledWith(removeItem(mockResults[0]));
+  });
+
+  it('displays the loading message while fetching data', () => {
+    useThemeContext.mockReturnValue({ theme: 'white', toggleTheme: jest.fn() });
+
+    useSelector.mockImplementationOnce((selector) => {
+      if (selector.name === 'fetchedResults.results') {
+        return null;
+      }
+      return null;
+    });
+
+    render(
+      <Provider store={store}>
+        <Results />
+      </Provider>
+    );
+
+    expect(screen.getByText('🌀 Loading...')).toBeInTheDocument();
+  });
+});
 
 describe('Results Component', () => {
   afterEach(() => {

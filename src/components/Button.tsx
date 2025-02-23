@@ -1,4 +1,4 @@
-import { useThemeContext } from '../contexts/themeContext';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 interface ButtonProps {
   label: string;
